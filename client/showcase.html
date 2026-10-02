@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Threnyx — Rarity Showcase</title>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/card.css">
+<style>
+  body { background: radial-gradient(ellipse at 50% 0%, #1a1620 0%, #07070a 60%); min-height: 100vh; padding: 28px 20px 60px; }
+  h1 { font-family: var(--font-display); font-weight: 700; letter-spacing: .4em; text-align: center; margin: 0 0 4px; font-size: 34px; color: var(--gold); }
+  .sub { text-align: center; color: var(--muted); letter-spacing: .25em; text-transform: uppercase; font-size: 13px; margin-bottom: 30px; }
+  .row { display: flex; flex-wrap: wrap; gap: 26px 22px; justify-content: center; align-items: flex-end; margin-bottom: 36px; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .cell span { font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
+  h2 { text-align: center; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; font-size: 13px; color: var(--dim); margin: 10px 0 16px; }
+</style>
+</head>
+<body>
+<h1>THRENYX</h1>
+<div class="sub">Visual Bible · Rarity Ladder</div>
+<div class="row" id="big"></div>
+<h2>Phone hand size (96px) — rarity must still read</h2>
+<div class="row" id="small"></div>
+<script type="module">
+import { installIcons } from './js/ui/icons.js';
+import { renderCard } from './js/ui/card.js';
+installIcons();
+// Phase 5 sample stat lines (final numbers come from Phase 6).
+const S = [
+  { id: 'hadric', art: 'hadric', name: 'Sir Hadric Moor', title: 'The Last Shield', faction: 'crown', rarity: 'common', cls: 'Sentinel', alignment: 'Heroic', traits: ['Knight'], stats: { strike: 4, guard: 7, scheme: 5 }, abilityName: 'Last to Fall', ability: { key: 'tieBreaker' }, flavor: 'I have buried every knight I trained. Except one.' },
+  { id: 'nyx', art: 'nyx', name: 'Nyx', title: 'The Unremembered', faction: 'margin', rarity: 'rare', cls: 'Trickster', alignment: 'Rogue', traits: ['Unsung', 'Assassin'], stats: { strike: 6, guard: 4, scheme: 6 }, abilityName: 'Forgettable', ability: { key: 'veiled' }, flavor: 'You met me four times today.' },
+  { id: 'caska', art: 'caska', name: 'Caska Vell', title: 'Lantern-Knight', faction: 'vigil', rarity: 'epic', cls: 'Sentinel', alignment: 'Heroic', traits: ['Knight', 'Sleepless'], stats: { strike: 5, guard: 6, scheme: 5 }, abilityName: 'The Light Holds', ability: { key: 'focusOnLoss' }, flavor: 'Sing if you like. I will keep the lamp lit.' },
+  { id: 'aurelle', art: 'aurelle', name: 'Aurelle Vantaine', title: 'The Ash Regent', faction: 'crown', rarity: 'legendary', cls: 'Sentinel', alignment: 'Heroic', traits: ['Vantaine', 'Royal'], stats: { strike: 6, guard: 6, scheme: 4 }, abilityName: 'The Mourning Court', ability: { key: 'fallen', max: 3 }, flavor: 'A crown is a promise you keep when everyone who heard it is dead.' },
+  { id: 'hollowKing', art: 'hollowKing', name: 'The Hollow King', title: 'Unsung', faction: 'margin', rarity: 'mythic', cls: 'Trickster', alignment: 'Villainous', traits: ['Unsung', 'Royal'], stats: { strike: 5, guard: 5, scheme: 6 }, abilityName: 'No Name to Read', ability: { key: 'veiled' }, flavor: 'You burned my city and forgot it. I am what forgetting costs.' },
+];
+const imm = { ...S[4], art: 'hollowKing:immortal' };
+const big = document.getElementById('big');
+const small = document.getElementById('small');
+const labels = ['Common', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Immortal'];
+[...S, imm].forEach((d, i) => {
+  const c = document.createElement('div'); c.className = 'cell';
+  c.appendChild(renderCard(d, { size: 'full', width: 250, tilt: true, treatment: i === 5 ? 'immortal' : null, serial: '00824 / 10000' }));
+  c.insertAdjacentHTML('beforeend', `<span>${labels[i]}</span>`);
+  big.appendChild(c);
+  const c2 = document.createElement('div'); c2.className = 'cell';
+  c2.appendChild(renderCard(d, { width: 96, treatment: i === 5 ? 'immortal' : null }));
+  small.appendChild(c2);
+});
+const cb = document.createElement('div'); cb.className = 'cell';
+cb.appendChild(renderCard(null, { back: true, width: 96 }));
+small.appendChild(cb);
+</script>
+</body>
+</html>

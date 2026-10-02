@@ -1,0 +1,748 @@
+/* ==========================================================================
+   THRENYX CARD
+   One component, every size. 1em = card width / 16, so the card is a single
+   scalable object: hand (~96px), board (~150px), inspect (~340px).
+   Rarity is readable without labels: material, light behaviour, motion.
+   ========================================================================== */
+
+@property --ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+.card {
+  --cw: 220px;
+  --fc: var(--bone);
+  /* tilt: the room light (--gx/--gy/--gm on :root, from the phone) unless a
+     showcase card's own spring (attachTilt) writes these inline */
+  --rx: 0deg; --ry: 0deg; --tx: var(--gx, 0); --ty: var(--gy, 0); --tm: var(--gm, 0);
+  --mx: calc((var(--tx) + 1) * 50%); --my: calc((var(--ty) + 1) * 50%);
+  position: relative;
+  width: var(--cw);
+  aspect-ratio: 5 / 7;
+  font-size: calc(var(--cw) / 16);
+  border-radius: 0.62em;
+  transform: perspective(60em) rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style: preserve-3d;
+  transition: transform 0.35s var(--ease-out), filter 0.3s, opacity 0.3s;
+  user-select: none;
+  -webkit-user-select: none;
+  flex: none;
+}
+.card.is-tilting { transition: transform 0.06s linear; }
+/* Motion-driven cards are smoothed by a spring in JS (ui/card.js attachTilt);
+   CSS transitions on top of it would only add lag. */
+.card[data-motion], .card[data-motion] .card__layer { transition: none; }
+
+.f-crown { --fc: var(--crown); }
+.f-quiet { --fc: var(--quiet); }
+.f-hour { --fc: var(--hour); }
+.f-margin { --fc: var(--margin); }
+.f-vigil { --fc: var(--vigil); }
+
+.card__frame {
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0.5em 1.4em rgba(0, 0, 0, 0.65), 0 0 0 0.06em rgba(0, 0, 0, 0.9);
+}
+.card__window {
+  position: absolute; inset: 0.3em;
+  border-radius: 0.4em;
+  overflow: hidden;
+  background: #000;
+  transform: translateZ(0);
+}
+.card__layer {
+  position: absolute; inset: -4%;
+  width: 108%; height: 108%;
+  object-fit: cover;
+  pointer-events: none;
+  transition: transform 0.35s var(--ease-out);
+}
+.is-tilting .card__layer { transition: transform 0.06s linear; }
+/* The painting is fixed to the card, like ink on a real one. Only the light
+   (effect layers, glare, holo) moves with the tilt. */
+.card__layer--art { translate: none; }
+.card__layer--bg { translate: calc(var(--tx) * -0.35em) calc(var(--ty) * -0.35em); }
+.card__layer--fig { translate: none; }
+.card__layer--fg { translate: calc(var(--tx) * 0.6em) calc(var(--ty) * 0.6em); }
+.card__layer--flat { inset: 0; width: 100%; height: 100%; }
+
+/* legibility shade under name + stats */
+.card__shade {
+  position: absolute; inset: auto 0 0 0; height: 46%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.72) 38%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+}
+.f-margin .card__shade { background: linear-gradient(to top, rgba(10, 8, 16, 0.94) 0%, rgba(10, 8, 16, 0.7) 40%, rgba(10, 8, 16, 0) 100%); }
+
+/* --- top row: faction sigil + rarity gem ---------------------------------- */
+.card__sigil, .card__gem, .card__name, .card__stats, .card__ability, .card__tags, .card__serial { z-index: 4; }
+.card__shade--over { position: absolute; inset: auto 0.3em 0.3em 0.3em; height: 46%; border-radius: 0 0 0.4em 0.4em; z-index: 3; pointer-events: none;
+  background: linear-gradient(to top, rgba(8, 6, 14, 0.95) 0%, rgba(8, 6, 14, 0.72) 40%, rgba(8, 6, 14, 0) 100%); }
+.card--full .card__shade--over { height: 62%; }
+.card__sigil {
+  position: absolute; top: 0.62em; left: 0.62em;
+  width: 1.9em; height: 1.9em;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: var(--fc);
+  background: radial-gradient(circle at 50% 35%, rgba(20, 20, 26, 0.85), rgba(0, 0, 0, 0.9));
+  box-shadow: 0 0 0 0.07em color-mix(in srgb, var(--fc) 70%, transparent), 0 0.15em 0.4em rgba(0, 0, 0, 0.6);
+}
+.card__sigil .ico { width: 1.25em; height: 1.25em; }
+.card__gem {
+  position: absolute; top: 0.72em; right: 0.72em;
+  width: 1.3em; height: 1.3em;
+  filter: drop-shadow(0 0 0.25em rgba(0, 0, 0, 0.9));
+}
+.card__gem .ico { width: 100%; height: 100%; }
+
+/* --- name --------------------------------------------------------------- */
+.card__name {
+  position: absolute; left: 0.7em; right: 0.7em; bottom: 2.85em;
+  text-align: center;
+  line-height: 1;
+  text-shadow: 0 0.08em 0.3em rgba(0, 0, 0, 0.95);
+}
+.card__name b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.12em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bone);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card__name i {
+  display: block;
+  margin-top: 0.18em;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 0.8em;
+  color: color-mix(in srgb, var(--fc) 55%, var(--bone));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* --- stats -------------------------------------------------------------- */
+.card__stats {
+  position: absolute; left: 0.55em; right: 0.55em; bottom: 0.55em;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.25em;
+}
+.card__stats:has(.stat--hp) { grid-template-columns: repeat(4, 1fr); gap: 0.18em; }
+.stat--hp .ico { color: #ff5a6e; }
+.stat--hp { background: linear-gradient(to bottom, rgba(46, 14, 20, 0.95), rgba(18, 6, 9, 0.96)); }
+.stat {
+  display: flex; align-items: center; justify-content: center; gap: 0.12em;
+  height: 1.85em;
+  border-radius: 0.3em;
+  background: linear-gradient(to bottom, rgba(24, 24, 30, 0.92), rgba(8, 8, 12, 0.95));
+  box-shadow: inset 0 0.05em 0 rgba(255, 255, 255, 0.07), 0 0 0 0.05em rgba(255, 255, 255, 0.06);
+  font-weight: 800;
+  font-size: 1em;
+  line-height: 1;
+}
+.stat .ico { width: 1.02em; height: 1.02em; }
+.stat b { font-size: 1.38em; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat--strike .ico { color: var(--strike); }
+.stat--guard .ico { color: var(--guard); }
+.stat--scheme .ico { color: var(--scheme); }
+.stat.is-best b { color: #fff; }
+.stat.is-low b { color: var(--muted); }
+
+/* --- mini (hand-size) layout: stats first, name second ---------------- */
+.card--mini .card__name { bottom: 3.35em; }
+.card--mini .card__name b { font-size: 1.5em; letter-spacing: 0.02em; }
+.card--mini .card__name i { display: none; }
+.card--mini .card__stats { left: 0.35em; right: 0.35em; bottom: 0.35em; gap: 0.15em; }
+.card--mini .card__stats:has(.stat--hp) { gap: 0.1em; }
+.card--mini .card__stats:has(.stat--hp) .stat b { font-size: 1.45em; }
+.card--mini .card__stats:has(.stat--hp) .stat .ico { width: 1.05em; height: 1.05em; }
+.card--mini .stat { height: 2.8em; flex-direction: column; gap: 0; border-radius: 0.35em; }
+.card--mini .stat .ico { width: 1.25em; height: 1.25em; margin-bottom: -0.1em; }
+.card--mini .stat b { font-size: 1.75em; }
+.card--mini .card__sigil { width: 2.5em; height: 2.5em; top: 0.45em; left: 0.45em; }
+.card--mini .card__sigil .ico { width: 1.6em; height: 1.6em; }
+.card--mini .card__gem { width: 1.8em; height: 1.8em; top: 0.55em; right: 0.55em; }
+.card--mini .card__shade { height: 52%; }
+
+/* --- full (inspect) layout: ability text ---------------------------------- */
+.card--full .card__shade { height: 62%; background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.86) 55%, rgba(0, 0, 0, 0) 100%); }
+.card--full .card__name { bottom: auto; top: 58%; }
+.card:not(.card--full) .card__serial { top: auto; bottom: 5.3em; }
+.card__ability {
+  position: absolute; left: 0.9em; right: 0.9em; top: 67.5%; bottom: 3.05em;
+  display: flex; flex-direction: column; justify-content: center; gap: 0.3em;
+  text-align: center;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 0.64em;
+  line-height: 1.22;
+  color: #ddd6c8;
+}
+.card__ability .abn { font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: color-mix(in srgb, var(--fc) 70%, #fff); font-size: 0.92em; }
+.card__ability em { font-style: normal; font-weight: 800; color: #fff; }
+.card__ability .flav { font-family: var(--font-display); font-style: italic; font-weight: 500; color: var(--muted); font-size: 1.05em; line-height: 1.15; }
+.card__tags {
+  position: absolute; top: 1.3em; left: 6.2em; right: 4.8em; text-align: center;
+  font-size: 0.5em; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;
+  color: rgba(235, 229, 216, 0.82);
+  text-shadow: 0 0 0.4em #000, 0 0 0.2em #000, 0 0 0.1em #000;
+  line-height: 1.5;
+}
+
+/* collector line (full cards): set, number, rarity, finish, under the tags */
+.card__set { display: block; margin-top: 0.45em; font-size: 0.86em; font-weight: 700; letter-spacing: 0.2em; color: rgba(235, 229, 216, 0.62); }
+.r-legendary .card__set { color: rgba(246, 217, 138, 0.9); }
+.r-mythic .card__set { color: #fff; }
+
+/* --- sheen (tilt light) ---------------------------------------------------- */
+.card__sheen {
+  position: absolute; inset: 0.3em; border-radius: 0.4em;
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 45%);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.card.is-tilting .card__sheen { opacity: 1; }
+
+/* ==========================================================================
+   RARITY MATERIALS
+   ========================================================================== */
+
+/* COMMON — matte forged iron. Calm. No motion. */
+.r-common .card__frame {
+  background: linear-gradient(160deg, #3b3a40 0%, #1c1c21 38%, #2e2d33 68%, #151519 100%);
+}
+.r-common .card__window { box-shadow: 0 0 0 0.05em color-mix(in srgb, var(--fc) 30%, transparent); }
+.r-common .card__gem { color: #8d877c; }
+
+/* RARE — brushed silver. Catches light when tilted. */
+.r-rare .card__frame {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 0.04em, rgba(0, 0, 0, 0.05) 0.04em 0.09em),
+    linear-gradient(135deg, #6c737d 0%, #e6ebf1 22%, #7e858f 42%, #d9dfe7 63%, #5e656f 82%, #aab1ba 100%);
+}
+.r-rare .card__window { box-shadow: 0 0 0 0.06em rgba(0, 0, 0, 0.8); }
+.r-rare .card__gem { color: #e7edf5; }
+
+/* EPIC — black enamel with a faction-coloured double inlay and inner glow.
+   Deliberately NOT metallic, so a gold-coloured faction never reads Legendary. */
+.r-epic .card__frame {
+  background: linear-gradient(150deg, #1c1a22 0%, #0b0a0e 45%, #18161d 100%);
+  box-shadow:
+    inset 0 0 0 0.07em color-mix(in srgb, var(--fc) 90%, #fff),
+    inset 0 0 0 0.16em #0b0a0e,
+    inset 0 0 0 0.2em color-mix(in srgb, var(--fc) 60%, transparent),
+    0 0.5em 1.4em rgba(0, 0, 0, 0.65),
+    0 0 1em color-mix(in srgb, var(--fc) 35%, transparent);
+}
+.r-epic .card__window { box-shadow: inset 0 0 1.4em color-mix(in srgb, var(--fc) 45%, transparent), 0 0 0 0.05em color-mix(in srgb, var(--fc) 70%, transparent); }
+.r-epic .card__gem { color: var(--fc); filter: drop-shadow(0 0 0.35em var(--fc)); }
+
+/* LEGENDARY — a thick engraved gold frame: filigree in all four corners and a
+   triple gold line around the painting. All static: drawn once. */
+.r-legendary .card__frame {
+  background: linear-gradient(135deg, #6f4f14 0%, #f6d98a 18%, #a3791e 36%, #fff1c4 52%, #9b7219 68%, #e9c46f 84%, #5d420f 100%);
+  box-shadow: 0 0.5em 1.6em rgba(0, 0, 0, 0.7), 0 0 1.2em rgba(233, 196, 111, 0.35), inset 0 0 0 0.05em #fff1c4, inset 0 0 0 0.1em #5d420f;
+}
+/* the four filigree corners, over the painting's edge */
+.card__corners {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg transform=''%3E%3Cpath d='M2 2 L18 2 C12 4 7 7 5 12 C8 10 12 10 14 12 C10 13 7 16 6 20 L2 38 Z' fill='%23fff1c4' stroke='%233a2a08' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M2 2 L14 2 C9 4 5 8 4 14 Z' fill='%236f4f14' opacity='.6'/%3E%3C/g%3E%3C/svg%3E") left -0.05em top -0.05em / 3.3em 3.3em no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg transform='translate(40 0) scale(-1 1)'%3E%3Cpath d='M2 2 L18 2 C12 4 7 7 5 12 C8 10 12 10 14 12 C10 13 7 16 6 20 L2 38 Z' fill='%23fff1c4' stroke='%233a2a08' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M2 2 L14 2 C9 4 5 8 4 14 Z' fill='%236f4f14' opacity='.6'/%3E%3C/g%3E%3C/svg%3E") right -0.05em top -0.05em / 3.3em 3.3em no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg transform='translate(0 40) scale(1 -1)'%3E%3Cpath d='M2 2 L18 2 C12 4 7 7 5 12 C8 10 12 10 14 12 C10 13 7 16 6 20 L2 38 Z' fill='%23fff1c4' stroke='%233a2a08' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M2 2 L14 2 C9 4 5 8 4 14 Z' fill='%236f4f14' opacity='.6'/%3E%3C/g%3E%3C/svg%3E") left -0.05em bottom -0.05em / 3.3em 3.3em no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg transform='translate(40 40) scale(-1 -1)'%3E%3Cpath d='M2 2 L18 2 C12 4 7 7 5 12 C8 10 12 10 14 12 C10 13 7 16 6 20 L2 38 Z' fill='%23fff1c4' stroke='%233a2a08' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M2 2 L14 2 C9 4 5 8 4 14 Z' fill='%236f4f14' opacity='.6'/%3E%3C/g%3E%3C/svg%3E") right -0.05em bottom -0.05em / 3.3em 3.3em no-repeat;
+}
+.r-legendary .card__window { inset: 0.46em; box-shadow: 0 0 0 0.06em #3a2a08, 0 0 0 0.12em #f6d98a, 0 0 0 0.17em #5d420f, inset 0 0 1.2em rgba(255, 210, 120, 0.25); }
+.r-legendary .card__gem { color: var(--gold-hi); filter: drop-shadow(0 0 0.4em var(--gold)); }
+.r-legendary .card__name b, .r-mythic .card__name b {
+  background: linear-gradient(to bottom, #fff8e0, #e9c46f 70%, #b88a2a);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: none; filter: drop-shadow(0 0.08em 0.25em rgba(0, 0, 0, 0.95));
+}
+.card__sweep {
+  position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none;
+}
+.card__sweep::after {
+  content: ''; position: absolute; top: -20%; bottom: -20%; width: 35%; left: -60%;
+  background: linear-gradient(100deg, transparent, rgba(255, 244, 210, 0.28) 45%, rgba(255, 255, 255, 0.45) 50%, rgba(255, 244, 210, 0.28) 55%, transparent);
+  transform: skewX(-18deg);
+  animation: sweep 5.5s var(--ease-out) infinite;
+  mix-blend-mode: overlay;
+}
+@keyframes sweep { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+
+.r-mythic .card__frame::after { content: none; }
+/* MYTHIC — full art: the painting runs to a thin prismatic rim, and the name
+   sits on a floating plate. The rim is still: it used to spin, redrawing the
+   frame every frame. */
+.r-mythic .card__frame {
+  background:
+    conic-gradient(from calc(25deg + var(--tx) * 70deg - var(--ty) * 40deg), #ff6b6b, #ffd166, #6bffb8, #45c4ff, #b388ff, #ff6bd6, #ff6b6b);
+  box-shadow: 0 0.5em 1.8em rgba(0, 0, 0, 0.75), 0 0 1.6em color-mix(in srgb, var(--fc) 55%, transparent);
+}
+.r-mythic .card__window { inset: 0.16em; border-radius: 0.5em; box-shadow: inset 0 0 0 0.05em rgba(255, 255, 255, 0.45), inset 0 0 1.6em color-mix(in srgb, var(--fc) 45%, transparent); }
+.r-mythic .card__name {
+  left: 0.45em; right: 0.45em; padding: 0.34em 0.4em 0.3em;
+  background: linear-gradient(90deg, transparent, rgba(8, 6, 14, 0.82) 14%, rgba(8, 6, 14, 0.82) 86%, transparent);
+  border-top: 0.06em solid; border-bottom: 0.06em solid;
+  border-image: linear-gradient(90deg, transparent, #ff6b6b 15%, #ffd166 32%, #6bffb8 50%, #45c4ff 68%, #b388ff 85%, transparent) 1;
+}
+.card--mini.r-mythic .card__name { padding: 0.2em 0.2em; }
+.r-mythic .card__gem { color: #fff; filter: drop-shadow(0 0 0.35em var(--fc)) drop-shadow(0 0 0.7em #fff); animation: gempulse 2.4s ease-in-out infinite; }
+@keyframes gempulse { 50% { transform: scale(1.18) rotate(45deg); } }
+.card__breakout {
+  position: absolute; inset: 0.3em; pointer-events: none; z-index: 2;
+  /* clip only the sides and bottom: the head/crown may rise above the frame */
+  clip-path: inset(-12% 0 0 0 round 0.4em);
+}
+.card__breakout .card__layer--fig { inset: -4% -4% -4% -4%; translate: 0 -5%; scale: 1.04; }
+.card__pulse {
+  position: absolute; inset: 0.3em; border-radius: 0.4em; overflow: hidden; pointer-events: none;
+}
+.card__pulse::before, .card__pulse::after {
+  content: ''; position: absolute; left: 50%; top: 22%; width: 2em; height: 2em; margin: -1em;
+  border-radius: 50%;
+  border: 0.08em solid color-mix(in srgb, var(--fc) 80%, #fff);
+  animation: ring 3.2s var(--ease-out) infinite;
+  opacity: 0;
+}
+.card__pulse::after { animation-delay: 1.6s; }
+@keyframes ring { 0% { transform: scale(0.5); opacity: 0.9; } 100% { transform: scale(11); opacity: 0; } }
+
+/* IMMORTAL — obsidian and white gold, full foil, numbered. Zero power. */
+.r-immortal .card__frame {
+  background:
+    linear-gradient(135deg, #fffaf0 0%, #c9a24a 8%, #1a1712 14%, #0a0908 50%, #1a1712 86%, #c9a24a 92%, #fffaf0 100%);
+  box-shadow: 0 0.6em 2em rgba(0, 0, 0, 0.8), 0 0 2em rgba(255, 236, 190, 0.35), 0 0 0 0.05em #fffaf0;
+}
+.r-immortal .card__window { inset: 0.42em; box-shadow: 0 0 0 0.06em #fffaf0, 0 0 0 0.16em #0a0908, 0 0 0 0.22em #c9a24a; }
+.r-immortal .card__gem { color: #fffaf0; filter: drop-shadow(0 0 0.4em #fff) drop-shadow(0 0 0.8em #c9a24a); animation: gempulse 3s ease-in-out infinite; }
+.card__foil {
+  position: absolute; inset: 0.42em; border-radius: 0.4em; pointer-events: none;
+  background:
+    repeating-linear-gradient(115deg, rgba(255, 0, 80, 0.0) 0%, rgba(255, 70, 70, 0.35) 4%, rgba(255, 220, 90, 0.35) 8%, rgba(90, 255, 170, 0.35) 12%, rgba(80, 180, 255, 0.35) 16%, rgba(190, 110, 255, 0.35) 20%, rgba(255, 0, 80, 0.0) 24%);
+  background-size: 250% 250%;
+  background-position: calc(var(--tx) * 40% + 50%) calc(var(--ty) * 40% + 50%);
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  animation: foil 9s linear infinite;
+}
+@keyframes foil { to { background-position: 250% 250%; } }
+.r-immortal .card__name b {
+  background: linear-gradient(to bottom, #ffffff, #fff1c8 40%, #d8b35c 80%);
+  -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none;
+  filter: drop-shadow(0 0 0.35em rgba(255, 230, 170, 0.6)) drop-shadow(0 0.08em 0.2em #000);
+}
+.card__serial {
+  position: absolute; top: 52.5%; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-ui); font-weight: 600; font-size: 0.56em; letter-spacing: 0.22em;
+  padding: 0.25em 0.8em; border-radius: 1em;
+  color: #fff4d6; background: rgba(0, 0, 0, 0.65);
+  box-shadow: 0 0 0 0.08em rgba(255, 240, 200, 0.5);
+  white-space: nowrap;
+}
+.r-immortal .card__layer--art { animation: drift 14s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: scale(1.02) translate(-1.5%, 0); } to { transform: scale(1.08) translate(1.5%, -1%); } }
+
+/* ==========================================================================
+   PREMIUM MOTION  (Legendary · Foil · Alt Art light; Mythic · Immortal full)
+   Driven by --tx/--ty/--tm from the tilt controller: phone motion where the
+   device allows it, finger/pointer otherwise. Only transform and opacity
+   change per frame; gradients are painted once and slid underneath masks.
+   ========================================================================== */
+
+/* Rim light: a specular line running round the frame, opposite the tilt. */
+.card__rim {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; overflow: hidden;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  padding: 0.3em;
+  opacity: calc(0.35 + var(--tm) * 0.65);
+}
+.r-immortal .card__rim { padding: 0.42em; }
+.card__rim::before {
+  content: ''; position: absolute; left: -50%; top: -50%; width: 200%; height: 200%;
+  background: linear-gradient(125deg, transparent 38%, rgba(255, 250, 235, 0.25) 46%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 250, 235, 0.25) 54%, transparent 62%);
+  translate: calc(var(--tx) * -30%) calc(var(--ty) * -22%);
+  mix-blend-mode: overlay;
+}
+
+/* Holo foil: a soft diamond lattice (the mask) over a rainbow that slides as
+   the card tilts, so the colours roll across the foil like pressed chrome.
+   The outer layer keeps the foil off the Champion: with a cutout it's the
+   exact silhouette, without one a centred vignette. */
+.card__holo {
+  position: absolute; inset: 0; pointer-events: none;
+  mix-blend-mode: color-dodge;
+  opacity: calc(0.22 + var(--tm) * 0.4);
+  -webkit-mask: radial-gradient(ellipse 46% 40% at 50% 42%, transparent 35%, #000 100%);
+          mask: radial-gradient(ellipse 46% 40% at 50% 42%, transparent 35%, #000 100%);
+}
+.card__holo.has-cut {
+  -webkit-mask: var(--cut) center / 108% 108% no-repeat, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: var(--cut) center / 108% 108% no-repeat, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+}
+.card__holo-l {
+  position: absolute; inset: 0; overflow: hidden;
+  /* diamond lattice: two sets of diagonal ridges, plus a faint base so the
+     colour also washes softly between them */
+  --hs: 0.9em;
+  --ridge: transparent 0, transparent calc(var(--hs) * 0.3), #000 calc(var(--hs) * 0.5), transparent calc(var(--hs) * 0.7), transparent var(--hs);
+  -webkit-mask:
+    repeating-linear-gradient(45deg, var(--ridge)),
+    repeating-linear-gradient(-45deg, var(--ridge)),
+    linear-gradient(rgba(0, 0, 0, 0.3) 0 0);
+          mask:
+    repeating-linear-gradient(45deg, var(--ridge)),
+    repeating-linear-gradient(-45deg, var(--ridge)),
+    linear-gradient(rgba(0, 0, 0, 0.3) 0 0);
+}
+.card__holo-l > i {
+  position: absolute; left: -100%; top: -100%; width: 300%; height: 300%;
+  background: linear-gradient(125deg,
+    #ff3d6e, #ff9f3d, #ffe83d, #54ff8a, #3dd8ff, #5a6bff, #c63dff, #ff3d6e,
+    #ff9f3d, #ffe83d, #54ff8a, #3dd8ff, #5a6bff, #c63dff, #ff3d6e);
+  translate: calc(var(--tx) * 18%) calc(var(--ty) * 14%);
+}
+.r-mythic .card__holo { opacity: calc(0.12 + var(--tm) * 0.3); }
+.r-mythic .card__holo-l { --hs: 0.8em; }
+.t-foil .card__holo, .r-immortal .card__holo { opacity: calc(0.28 + var(--tm) * 0.45); }
+
+/* Environment: selective movement inside the painting. A high haze drifts
+   through the sky; a low faction light breathes at the horizon. Slow enough
+   that you notice it only when you look. */
+.card__env { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.card__env::before {
+  content: ''; position: absolute; left: -40%; width: 180%; top: 2%; height: 50%;
+  background:
+    radial-gradient(ellipse 22% 36% at 22% 45%, color-mix(in srgb, var(--fc) 35%, #fff), transparent 70%),
+    radial-gradient(ellipse 26% 30% at 58% 30%, color-mix(in srgb, var(--fc) 25%, #fff), transparent 70%),
+    radial-gradient(ellipse 20% 34% at 86% 55%, color-mix(in srgb, var(--fc) 35%, #fff), transparent 70%);
+  mix-blend-mode: screen; opacity: 0.13;
+  translate: calc(var(--tx) * -0.6em) 0;
+  animation: haze 38s ease-in-out infinite alternate;
+}
+.card__env::after {
+  content: ''; position: absolute; left: -10%; right: -10%; top: 40%; height: 34%;
+  background: radial-gradient(ellipse 55% 50% at 50% 100%, var(--fc), transparent 70%);
+  mix-blend-mode: screen; opacity: 0.16;
+  animation: breathe 5.5s ease-in-out infinite;
+}
+@keyframes haze { from { transform: translateX(-9%); } to { transform: translateX(9%); } }
+@keyframes breathe { 50% { opacity: 0.3; } }
+
+/* Particles canvas (ui/fx.js), in front of the Champion, behind the text. */
+.card__fx { position: absolute; inset: 0.3em; width: calc(100% - 0.6em); height: calc(100% - 0.6em); border-radius: 0.4em; pointer-events: none; z-index: 3; }
+
+/* Glare: the light source. Stays put in the room, so on the card it moves
+   opposite the tilt. Covers everything, text included, but only in soft-light,
+   so it reads as a reflection on the surface rather than a highlight in it. */
+.card__glare {
+  position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; z-index: 5;
+  mix-blend-mode: soft-light;
+  opacity: calc(0.25 + var(--tm) * 0.75);
+}
+.card__glare::before {
+  content: ''; position: absolute; left: -50%; top: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.22) 16%, rgba(255, 255, 255, 0) 34%);
+  translate: calc(var(--tx) * -24%) calc(var(--ty) * -24%);
+}
+.r-immortal .card__glare::after, .t-foil .card__glare::after, .r-mythic .card__glare::after {
+  content: ''; position: absolute; left: -50%; top: -50%; width: 200%; height: 200%;
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.4) 49.4%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.4) 50.6%, transparent 58%);
+  translate: calc(var(--tx) * -32% + var(--ty) * -10%) 0;
+  mix-blend-mode: overlay;
+  opacity: var(--tm);
+}
+/* Premium cards: the hand is the light, so the timed sweep and the pointer
+   sheen give way to the glare. */
+.card[data-motion='premium'] .card__sheen, .card[data-motion='premium'] .card__pulse { display: none; }
+.card[data-motion='premium'].is-tilting .card__sweep { opacity: 0; }
+.card__sweep { transition: opacity 0.6s; }
+
+/* ==========================================================================
+   STATES
+   ========================================================================== */
+.card.is-spent { filter: grayscale(0.9) brightness(0.45); }
+/* Foil / Alt Art treatments on non-Immortal cards */
+.t-foil .card__window::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: overlay; opacity: 0.45;
+  background: linear-gradient(115deg, transparent 20%, rgba(255, 80, 120, 0.5) 35%, rgba(255, 230, 120, 0.5) 45%, rgba(120, 255, 200, 0.5) 55%, rgba(120, 170, 255, 0.5) 65%, transparent 80%);
+  background-size: 250% 250%; background-position: calc(var(--tx) * 40% + 50%) 50%;
+}
+.t-altart .card__gem::after { content: ''; position: absolute; inset: -0.25em; border-radius: 50%; box-shadow: 0 0 0 0.08em var(--gold); }
+.card.is-selected { transform: perspective(60em) translateY(-0.9em) scale(1.04); }
+.card.is-selected .card__frame { box-shadow: 0 0 0 0.12em #fff, 0 0 1.5em color-mix(in srgb, var(--fc) 70%, transparent), 0 1em 2em rgba(0, 0, 0, 0.7); }
+.card.is-disabled { filter: brightness(0.5) saturate(0.5); }
+
+/* card back */
+.card--back .card__frame {
+  background:
+    radial-gradient(circle at 50% 42%, transparent 0 1.2em, rgba(233, 196, 111, 0.55) 1.2em 1.28em, transparent 1.28em 2.3em, rgba(233, 196, 111, 0.35) 2.3em 2.36em, transparent 2.36em 3.5em, rgba(233, 196, 111, 0.22) 3.5em 3.55em, transparent 3.55em 4.8em, rgba(233, 196, 111, 0.12) 4.8em 4.84em, transparent 4.84em),
+    linear-gradient(160deg, #17151d, #0a090d 60%, #141219);
+  box-shadow: 0 0.5em 1.4em rgba(0, 0, 0, 0.65), inset 0 0 0 0.3em #0a090d, inset 0 0 0 0.36em rgba(233, 196, 111, 0.55);
+}
+.card--back .card__mono {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  font-family: var(--font-display); font-weight: 700; font-size: 2.1em; color: var(--gold);
+  text-shadow: 0 0 0.4em rgba(233, 196, 111, 0.5);
+}
+.card--back .card__word {
+  position: absolute; left: 0; right: 0; bottom: 1.6em; text-align: center;
+  font-family: var(--font-display); font-weight: 700; letter-spacing: 0.45em; font-size: 0.72em; color: rgba(233, 196, 111, 0.8);
+  padding-left: 0.45em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card__sweep::after, .r-mythic .card__frame, .card__pulse::before, .card__pulse::after, .card__foil, .r-immortal .card__layer--art, .card__gem, .card__env::before, .card__env::after { animation: none !important; }
+}
+
+/* ==========================================================================
+   ALT ART — the same painting, re-graded, in its own frame. One grade per
+   card (ui/card.js altGrade): ink-wash, moonlit, or ember-lit.
+   ========================================================================== */
+.card__grade { position: absolute; inset: 0; pointer-events: none; }
+.card__grade::after { content: ''; position: absolute; inset: 0; }
+
+.alt-ink .card__layer--art { filter: grayscale(1) contrast(1.35) brightness(1.1); }
+.alt-ink .card__grade { background: linear-gradient(180deg, #f5e8c8, #c7b287); mix-blend-mode: multiply; }
+.alt-ink .card__grade::after { background: radial-gradient(90% 60% at 50% 105%, color-mix(in srgb, var(--fc) 70%, transparent), transparent 70%); mix-blend-mode: color; }
+.t-altart.alt-ink .card__frame {
+  background: linear-gradient(160deg, #f1e8d4 0%, #cfc1a2 48%, #ebe0c8 100%);
+  box-shadow: inset 0 0 0 0.08em #17120c, inset 0 0 0 0.19em #efe5cf, inset 0 0 0 0.24em #17120c, 0 0.5em 1.4em rgba(0, 0, 0, 0.65);
+}
+.t-altart.alt-ink .card__frame::after { background: none; }
+
+.alt-moon .card__layer--art { filter: grayscale(0.85) brightness(0.95) contrast(1.15); }
+.alt-moon .card__grade { background: linear-gradient(180deg, #6f9cf0, #1a2c66); mix-blend-mode: color; opacity: 0.8; }
+.alt-moon .card__grade::after { background: radial-gradient(60% 45% at 78% 12%, rgba(225, 238, 255, 0.45), transparent 70%); mix-blend-mode: screen; }
+.t-altart.alt-moon .card__frame {
+  background: linear-gradient(135deg, #222c42 0%, #b4cbee 22%, #3a4966 44%, #e2edfb 62%, #27324b 82%, #8ea8cc 100%);
+  box-shadow: 0 0.5em 1.5em rgba(0, 0, 0, 0.7), 0 0 1.1em rgba(120, 170, 255, 0.4);
+}
+.t-altart.alt-moon .card__frame::after { background: none; }
+
+.alt-ember .card__layer--art { filter: sepia(0.45) saturate(1.7) contrast(1.2) brightness(0.95); }
+.alt-ember .card__grade { background: linear-gradient(to top, rgba(255, 90, 20, 0.6), rgba(255, 150, 40, 0.12) 55%, rgba(50, 12, 0, 0.45)); mix-blend-mode: overlay; }
+.alt-ember .card__grade::after { background: radial-gradient(110% 80% at 50% 45%, transparent 45%, rgba(40, 6, 0, 0.6)); }
+.t-altart.alt-ember .card__frame {
+  background: linear-gradient(150deg, #2a1206 0%, #9a4214 28%, #1c0a04 52%, #c4621f 78%, #2a1206 100%);
+  box-shadow: 0 0.5em 1.5em rgba(0, 0, 0, 0.7), 0 0 1.2em rgba(255, 110, 30, 0.45);
+}
+.t-altart.alt-ember .card__frame::after { background: none; }
+
+/* ==========================================================================
+   ASCENSION — duplicates, spent, show on the card. Never affects Power.
+   1 Tempered: faction metalwork on the frame.
+   2 Radiant:  + the trim breathes light, a glowing name plate, a light sweep.
+   3 Ascended: + motes rising through the painting, an Ascended crest.
+   ========================================================================== */
+.card__trim {
+  --tc: color-mix(in srgb, var(--fc) 62%, #fff4d8);
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3;
+  box-shadow: inset 0 0 0 0.07em var(--tc), inset 0 0 0 0.14em rgba(0, 0, 0, 0.55), inset 0 0 0 0.19em color-mix(in srgb, var(--fc) 55%, transparent);
+  background:
+    linear-gradient(var(--tc), var(--tc)) left 0.04em top 0.04em / 3.4em 0.3em no-repeat,
+    linear-gradient(var(--tc), var(--tc)) left 0.04em top 0.04em / 0.3em 3.4em no-repeat,
+    linear-gradient(var(--tc), var(--tc)) right 0.04em top 0.04em / 3.4em 0.3em no-repeat,
+    linear-gradient(var(--tc), var(--tc)) right 0.04em top 0.04em / 0.3em 3.4em no-repeat,
+    linear-gradient(var(--tc), var(--tc)) left 0.04em bottom 0.04em / 3.4em 0.3em no-repeat,
+    linear-gradient(var(--tc), var(--tc)) left 0.04em bottom 0.04em / 0.3em 3.4em no-repeat,
+    linear-gradient(var(--tc), var(--tc)) right 0.04em bottom 0.04em / 3.4em 0.3em no-repeat,
+    linear-gradient(var(--tc), var(--tc)) right 0.04em bottom 0.04em / 0.3em 3.4em no-repeat,
+    radial-gradient(circle, #fff 0 0.08em, var(--tc) 0.1em 0.2em, transparent 0.23em) left 50% top -0.06em / 0.5em 0.5em no-repeat,
+    radial-gradient(circle, #fff 0 0.08em, var(--tc) 0.1em 0.2em, transparent 0.23em) left 50% bottom -0.06em / 0.5em 0.5em no-repeat,
+    radial-gradient(circle, #fff 0 0.08em, var(--tc) 0.1em 0.2em, transparent 0.23em) left -0.06em top 50% / 0.5em 0.5em no-repeat,
+    radial-gradient(circle, #fff 0 0.08em, var(--tc) 0.1em 0.2em, transparent 0.23em) right -0.06em top 50% / 0.5em 0.5em no-repeat;
+  filter: drop-shadow(0 0 0.12em rgba(0, 0, 0, 0.8));
+}
+.a-2 .card__trim, .a-3 .card__trim { animation: trimGlow 3.2s ease-in-out infinite; }
+@keyframes trimGlow { 0%, 100% { filter: drop-shadow(0 0 0.2em var(--fc)); } 50% { filter: drop-shadow(0 0 0.65em var(--fc)) brightness(1.35); } }
+.a-3 .card__trim { box-shadow: inset 0 0 0 0.07em var(--tc), inset 0 0 0 0.14em rgba(0, 0, 0, 0.55), inset 0 0 0 0.19em color-mix(in srgb, var(--fc) 55%, transparent), 0 0 1.3em color-mix(in srgb, var(--fc) 55%, transparent); }
+
+.a-2 .card__name, .a-3 .card__name {
+  padding: 0.28em 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--fc) 34%, rgba(0, 0, 0, 0.7)) 18%, color-mix(in srgb, var(--fc) 34%, rgba(0, 0, 0, 0.7)) 82%, transparent);
+  box-shadow: 0 -0.05em 0 color-mix(in srgb, var(--fc) 60%, transparent), 0 0.05em 0 color-mix(in srgb, var(--fc) 60%, transparent);
+}
+.a-2 .card__name b, .a-3 .card__name b { filter: drop-shadow(0 0.08em 0.25em rgba(0, 0, 0, 0.95)) drop-shadow(0 0 0.45em var(--fc)); }
+
+.card__motes { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; }
+.card__motes i {
+  --d: color-mix(in srgb, var(--fc) 70%, #fff);
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 18% 30%, var(--d) 0 0.07em, transparent 0.16em),
+    radial-gradient(circle at 64% 72%, var(--d) 0 0.09em, transparent 0.2em),
+    radial-gradient(circle at 86% 18%, var(--d) 0 0.05em, transparent 0.13em);
+  background-size: 4em 4.5em;
+  animation: motes 5s linear infinite, moteFlicker 2.6s ease-in-out infinite;
+}
+.card__motes i + i { background-size: 5.5em 6em; animation-duration: 8s, 3.4s; opacity: 0.7; filter: blur(0.03em); }
+@keyframes motes { to { background-position: 0 -4.5em; } }
+.card__motes i + i { animation-name: motes2, moteFlicker; }
+@keyframes motes2 { to { background-position: 0.8em -6em; } }
+@keyframes moteFlicker { 50% { opacity: 0.45; } }
+
+.card__asc {
+  position: absolute; z-index: 5; top: 0.62em; left: 50%; transform: translateX(-50%);
+  padding: 0.22em 1.1em; white-space: nowrap;
+  font-family: var(--font-ui); font-weight: 800; font-size: 0.56em; letter-spacing: 0.22em; text-transform: uppercase;
+  color: #1b1307; background: linear-gradient(180deg, #fff3cf, #e9c46f 55%, #a87a1e);
+  clip-path: polygon(0 0, 100% 0, 94% 50%, 100% 100%, 0 100%, 6% 50%);
+  filter: drop-shadow(0 0 0.5em color-mix(in srgb, var(--fc) 80%, transparent));
+}
+.card--full .card__asc { top: calc(58% - 2.3em); }
+.card:not(.card--full) .card__asc { padding: 0.1em 0.7em; font-size: 0.9em; letter-spacing: 0; clip-path: polygon(0 0, 100% 0, 88% 50%, 100% 100%, 0 100%, 12% 50%); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card__trim, .card__motes i { animation: none !important; }
+}
+
+/* ==========================================================================
+   PAINTED EFFECT LAYERS UNDER A MOVING LIGHT
+   Each card's delivered layer (Rare silver, Epic arcane, Legendary gold) or
+   Mythic holo stack sits on the fixed painting. The phone's tilt is the light:
+     --tx/--ty  -1..1  which way the card is tipped   --tm  0..1  how far
+   A band of light (a mask over the layer) slides across the card opposite to
+   the tilt, its angle turns with the tilt, and brightness, sparkle and the
+   Mythic hue shift all rise with it. Held flat and still, the layer rests at
+   a low glow, like foil in room light.
+   ========================================================================== */
+.card__rfx, .card__hf, .card__hr, .card__hg {
+  /* where the light band sits and which way it runs */
+  --lx: calc(50% - var(--tx) * 42%);
+  --ly: calc(50% - var(--ty) * 42%);
+  --la: calc(118deg + var(--tx) * 28deg - var(--ty) * 18deg);
+  -webkit-mask-image: linear-gradient(var(--la), rgba(0,0,0,var(--floor)) 38%, #000 47.5%, #000 52.5%, rgba(0,0,0,var(--floor)) 62%);
+          mask-image: linear-gradient(var(--la), rgba(0,0,0,var(--floor)) 38%, #000 47.5%, #000 52.5%, rgba(0,0,0,var(--floor)) 62%);
+  -webkit-mask-size: 300% 300%; mask-size: 300% 300%;
+  -webkit-mask-position: var(--lx) var(--ly); mask-position: var(--lx) var(--ly);
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  --floor: 0.25;
+  will-change: mask-position, opacity, filter;
+}
+
+/* RARE — a cool silver sheen that catches along edges and highlights. */
+.r-rare .card__rfx {
+  --floor: 0.06;
+  -webkit-mask-image: linear-gradient(var(--la), rgba(0,0,0,var(--floor)) 36%, #000 47%, #000 53%, rgba(0,0,0,var(--floor)) 64%);
+          mask-image: linear-gradient(var(--la), rgba(0,0,0,var(--floor)) 36%, #000 47%, #000 53%, rgba(0,0,0,var(--floor)) 64%);
+  mix-blend-mode: screen;
+  opacity: calc(0.55 + var(--tm) * 0.45);
+  filter: brightness(calc(1.9 + var(--tm) * 1.2)) saturate(0.85);
+}
+
+/* EPIC — violet/cyan aura; the ripples drift with the tilt and swell. */
+.r-epic .card__rfx {
+  --floor: 0.16;
+  -webkit-mask-image: linear-gradient(var(--la), rgba(0,0,0,var(--floor)) 32%, #000 46%, #000 54%, rgba(0,0,0,var(--floor)) 68%);
+          mask-image: linear-gradient(var(--la), rgba(0,0,0,var(--floor)) 32%, #000 46%, #000 54%, rgba(0,0,0,var(--floor)) 68%);
+  mix-blend-mode: screen;
+  opacity: calc(0.6 + var(--tm) * 0.4);
+  filter: brightness(calc(1.8 + var(--tm) * 1.2)) hue-rotate(calc(var(--tx) * 22deg)) saturate(calc(1 + var(--tm) * 0.5));
+  translate: calc(var(--tx) * 0.45em) calc(var(--ty) * 0.45em);
+  scale: calc(1 + var(--tm) * 0.035);
+}
+
+/* LEGENDARY — gold foil: a narrow bright sweep that flares on tilt. */
+.r-legendary .card__rfx {
+  --floor: 0.1;
+  -webkit-mask-image: linear-gradient(var(--la), rgba(0,0,0,var(--floor)) 42%, #000 48.8%, #000 51.2%, rgba(0,0,0,var(--floor)) 58%);
+          mask-image: linear-gradient(var(--la), rgba(0,0,0,var(--floor)) 42%, #000 48.8%, #000 51.2%, rgba(0,0,0,var(--floor)) 58%);
+  mix-blend-mode: screen;
+  opacity: calc(0.7 + var(--tm) * 0.3);
+  filter: brightness(calc(2.2 + var(--tm) * 1.6)) saturate(calc(1.1 + var(--tm) * 0.4));
+}
+/* the gold sweep also crosses the frame, as a highlight on the metal */
+.r-legendary .card__glare::after {
+  content: ''; position: absolute; left: -50%; top: -50%; width: 200%; height: 200%;
+  background: linear-gradient(var(--la, 115deg), transparent 44%, rgba(255, 226, 150, 0.55) 49.5%, rgba(255, 250, 225, 0.75) 50%, rgba(255, 226, 150, 0.55) 50.5%, transparent 56%);
+  translate: calc(var(--tx) * -32% + var(--ty) * -10%) 0;
+  mix-blend-mode: overlay;
+  opacity: var(--tm);
+  --la: calc(118deg + var(--tx) * 28deg - var(--ty) * 18deg);
+}
+
+/* MYTHIC — the full holo: rainbow foil that shifts hue with the angle,
+   sound ripples that swell and drift, glints that only fire in the light. */
+.card__hf {
+  --floor: 0.15;
+  mix-blend-mode: screen;
+  opacity: calc(0.6 + var(--tm) * 0.4);
+  filter: hue-rotate(calc(var(--tx) * 140deg - var(--ty) * 90deg)) saturate(calc(1.3 + var(--tm) * 0.6)) brightness(calc(1.7 + var(--tm) * 1.1));
+}
+.card__hr {
+  --floor: 0.3;
+  mix-blend-mode: screen;
+  opacity: calc(0.45 + var(--tm) * 0.55);
+  filter: brightness(calc(1.4 + var(--tm)));
+  translate: calc(var(--tx) * 0.5em) calc(var(--ty) * 0.5em);
+  scale: calc(1 + var(--tm) * 0.05);
+}
+.card__hg {
+  --floor: 0;
+  -webkit-mask-image: linear-gradient(var(--la), transparent 40%, #000 48%, #000 52%, transparent 60%);
+          mask-image: linear-gradient(var(--la), transparent 40%, #000 48%, #000 52%, transparent 60%);
+  mix-blend-mode: plus-lighter;
+  opacity: calc(var(--tm) * 1.1);
+  filter: brightness(calc(1.6 + var(--tm) * 1.4));
+}
+.card--mini .card__rfx, .card--mini .card__hf { --floor: 0.35; }
+/* the Mythic's own holo mask decides where the tilt-rainbow may shine */
+.card__holo.has-mask {
+  -webkit-mask: var(--hm) center / 108% 108% no-repeat;
+          mask: var(--hm) center / 108% 108% no-repeat;
+}
+.r-mythic .card__holo.has-mask { opacity: calc(0.15 + var(--tm) * 0.5); }
+@media (prefers-reduced-motion: reduce) {
+  .card__rfx, .card__hf, .card__hr, .card__hg { translate: none; scale: none; }
+}
+
+/* the phone is the light: no timed sweeps while it's live */
+.sensor-live .card__sweep { display: none; }
+/* Collection grids can hold 120 cards: there the layers rest at their room
+   glow instead of repainting on every tilt. Board, hand, pack and inspect
+   cards follow the light. */
+.cell .card { --tx: 0; --ty: 0; --tm: 0; }
+
+/* Flat cards (grids, hands, the board) are pictures, not 3D objects: no 3D
+   context, no forced GPU layers, no looping shine. On an iPhone every 3D or
+   animated layer costs graphics memory at 3x resolution, and a Vault or Octave
+   grid holds dozens of cards: that is what ran Safari out of memory. */
+.card--flat { transform: none; transform-style: flat; transition: filter 0.3s, opacity 0.3s; }
+.card--flat .card__window { transform: none; }
+.card--flat .card__sweep, .card--flat .card__pulse, .card--flat .card__env, .card--flat .card__motes { display: none; }
+.card--flat .card__gem, .card--flat .card__frame, .card--flat .card__sheen { animation: none !important; }
+/* long grids only lay out and paint the cards on screen */
+.pick-grid .cell, .vault-grid .cell { content-visibility: auto; contain-intrinsic-size: auto 130px; }
+
+/* Alt-art in small (flat) cards: the grade as one filter on the painting, no
+   blend layers. iPhone Safari drew the blended grade black in grids and pack
+   summaries; this looks the same at thumbnail size and costs less. */
+.card--flat .card__grade { display: none; }
+.card--flat.alt-ink .card__layer--art { filter: grayscale(1) sepia(0.35) contrast(1.3) brightness(1.08); }
+.card--flat.alt-moon .card__layer--art { filter: grayscale(0.85) sepia(0.55) hue-rotate(185deg) saturate(2.6) brightness(0.82) contrast(1.15); }
+.card--flat.alt-ember .card__layer--art { filter: sepia(0.7) saturate(2.1) hue-rotate(-12deg) contrast(1.2) brightness(0.9); }
+/* the full-size grade blends inside the card only */
+.card__window { isolation: isolate; }
+
+/* THE OKTOBERFEST SET (treatment 'oktober'): wine and bronze, a warm harvest
+   grade until each card's own autumn painting arrives (art/oktober/). */
+.t-oktober .card__frame { background: linear-gradient(160deg, #e8a35c, #6b1420 45%, #2a0a0c 70%, #c9853f) !important; box-shadow: 0 0 0 0.06em #e8a35c, 0 0 1.4em rgba(232, 120, 60, 0.45), 0 0.6em 1.4em rgba(0, 0, 0, 0.6); }
+.t-oktober .card__window { box-shadow: inset 0 0 0 0.06em rgba(232, 163, 92, 0.8), inset 0 0 1.6em rgba(120, 20, 30, 0.55); }
+.t-oktober .card__layer--art { filter: sepia(0.35) saturate(1.35) hue-rotate(-12deg) contrast(1.05); }
+.t-oktober .card__name b { color: #f3c98b; }
+.card__okt {
+  position: absolute; left: 50%; top: 0.55em; transform: translateX(-50%); z-index: 6;
+  padding: 0.15em 0.6em; font-size: 0.5em; font-weight: 800; letter-spacing: 0.18em; white-space: nowrap;
+  color: #2a0a0c; background: linear-gradient(180deg, #f7cf8f, #c9853f); border-radius: 0.3em;
+  box-shadow: 0 0 0.6em rgba(232, 163, 92, 0.7);
+}
+.card--full .card__okt { font-size: 0.4em; top: -0.55em; }
+.card__styles { color: rgba(233, 196, 111, 0.85); }

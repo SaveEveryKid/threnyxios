@@ -1,0 +1,50 @@
+/* THRENYX design tokens. Dark, deliberate, light is precious. */
+@font-face { font-family: 'Cormorant'; src: url('../fonts/cormorant.woff2') format('woff2'); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: 'Cormorant'; src: url('../fonts/cormorant-italic.woff2') format('woff2'); font-style: italic; font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('../fonts/barlow-500.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('../fonts/barlow-600.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('../fonts/barlow-800.woff2') format('woff2'); font-weight: 800; font-display: swap; }
+
+:root {
+  --bg0: #060609;
+  --bg1: #0c0c12;
+  --bg2: #14141c;
+  --line: rgba(233, 228, 218, 0.12);
+  --bone: #ebe5d8;
+  --muted: #9a9387;
+  --dim: #5f5a52;
+  --gold: #e9c46f;
+  --gold-hi: #fff0c2;
+  --danger: #ff4d4d;
+
+  --strike: #ff5b3a;
+  --guard: #45c4ff;
+  --scheme: #c77dff;
+  --focus: #ffd166;
+  --read: #f2f2f2;
+
+  --crown: #ff7a3d;
+  --quiet: #cfd8e8;
+  --hour: #3fcf9f;
+  --margin: #8b5cf6;
+  --vigil: #ffcc66;
+
+  --r-common: #b9b2a5;
+  --r-rare: #8fb8ff;
+  --r-epic: #c77dff;
+  --r-legendary: #f0c060;
+  --r-mythic: #ff7ad9;
+
+  --font-display: 'Cormorant', 'Cormorant Garamond', Georgia, serif;
+  --font-ui: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-slam: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg0); color: var(--bone); }
+body { font-family: var(--font-ui); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+.ico { width: 1em; height: 1em; display: inline-block; vertical-align: middle; flex: none; }
+button { font: inherit; color: inherit; }

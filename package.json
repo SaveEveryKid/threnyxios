@@ -1,0 +1,13 @@
+{
+  "name": "threnyx",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "sim": "node sim/run.js",
+    "serve": "http-server . -p 8080 -c-1"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  }
+}

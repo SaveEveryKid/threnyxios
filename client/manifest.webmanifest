@@ -1,0 +1,16 @@
+{
+  "name": "THRENYX",
+  "short_name": "THRENYX",
+  "description": "A dark-fantasy card game. Read your opponent, win the Reckoning.",
+  "start_url": "../",
+  "scope": "../",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#060609",
+  "theme_color": "#060609",
+  "icons": [
+    { "src": "art/icon/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "art/icon/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "art/icon/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
